@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <!-- Minima -->
+  <!-- Hexo theme created by @adisaktijrs -->
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+
+  
+  <title>Rimworld 环世界 Mod 代码解读之 Mad Skills (MOD 制作向导)</title>
+  
+  <link rel="canonical" href="https://weaverzhu.github.io/2020/01/27/rimworld-mod-codereading1/">
+  
+  <meta name="description" content="开篇闲扯Rimworld 有一个逼死强迫症的设定就是，小人的技能升级过高之后会导致技能随着时间自然流失。于是就有了一个叫做 Mad Skills 的创意工坊 MOD。创意工坊连接  涉及 C# 代码，采用 Harmony 注入 代码量很小 改变了游戏中的一些行为（指定经验值流失速率等，而这个在代码里">
+  
+  
+  <meta name="author" content="Weave_zhu">
+  
+  <meta property="og:image" content="https://weaverzhu.github.ioundefined">
+  
+  <meta property="og:site_name" content="Weaver_zhu&#39;s blog" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Rimworld 环世界 Mod 代码解读之 Mad Skills (MOD 制作向导)" />
+  
+  <meta property="og:description" content="开篇闲扯Rimworld 有一个逼死强迫症的设定就是，小人的技能升级过高之后会导致技能随着时间自然流失。于是就有了一个叫做 Mad Skills 的创意工坊 MOD。创意工坊连接  涉及 C# 代码，采用 Harmony 注入 代码量很小 改变了游戏中的一些行为（指定经验值流失速率等，而这个在代码里">
+  
+  <meta property="og:url" content="https://weaverzhu.github.io/2020/01/27/rimworld-mod-codereading1/" />
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Rimworld 环世界 Mod 代码解读之 Mad Skills (MOD 制作向导)">
+  
+  <meta name="twitter:description" content="开篇闲扯Rimworld 有一个逼死强迫症的设定就是，小人的技能升级过高之后会导致技能随着时间自然流失。于是就有了一个叫做 Mad Skills 的创意工坊 MOD。创意工坊连接  涉及 C# 代码，采用 Harmony 注入 代码量很小 改变了游戏中的一些行为（指定经验值流失速率等，而这个在代码里">
+  
+  
+  <meta name="twitter:image" content="https://weaverzhu.github.ioundefined">
+  
+  <meta name="twitter:url" content="https://weaverzhu.github.io/2020/01/27/rimworld-mod-codereading1/" />
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Preload fonts
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="preload" href="../fonts/dm-serif-display-v4-latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/inter-v2-latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  
+<link rel="stylesheet" href="/css/normalize.css">
+
+  
+<link rel="stylesheet" href="/css/skeleton.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+<link rel="stylesheet" href="/css/prism-dark.css">
+
+  
+<link rel="stylesheet" href="/css/prism-line-numbers.css">
+
+  <!-- User css -->
+  
+  
+<link rel="stylesheet" href="/css/user.css">
+
+  
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="">
+
+  <!-- Custom Theme Color Style
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <style>
+  a:not(.icon) {
+    text-decoration-color: #0FA0CE;
+    background-image: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 50%,
+      #0FA0CE 50%
+    );
+  }
+  blockquote {
+    border-left: 8px solid #0FA0CE;
+  }
+  .nanobar .bar {
+    background: #0FA0CE;
+  }
+  .button.button-primary:hover,
+  button.button-primary:hover,
+  input[type="submit"].button-primary:hover,
+  input[type="reset"].button-primary:hover,
+  input[type="button"].button-primary:hover,
+  .button.button-primary:focus,
+  button.button-primary:focus,
+  input[type="submit"].button-primary:focus,
+  input[type="reset"].button-primary:focus,
+  input[type="button"].button-primary:focus {
+    background-color: #0FA0CE;
+    border-color: #0FA0CE;
+  }
+  input[type="email"]:focus,
+  input[type="number"]:focus,
+  input[type="search"]:focus,
+  input[type="text"]:focus,
+  input[type="tel"]:focus,
+  input[type="url"]:focus,
+  input[type="password"]:focus,
+  textarea:focus,
+  select:focus {
+    border: 1px solid #0FA0CE;
+  }
+</style>
+
+  <!-- Google Analytics (With Privacy Settings On)
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  
+
+<meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="Weaver_zhu's blog" type="application/atom+xml">
+</head>
+
+<body>
+  <div class="container">
+    <div class="row">
+      <div>
+
+        <div class="row">
+  <div class="two columns" style="max-width: 50px">
+    <h1 class="mt-2 mode">
+      <div onclick=setDarkMode(true) id="darkBtn">🌑</div>
+      <div onclick=setDarkMode(false) id="lightBtn" class=hidden>☀️</div>
+      <script >
+        if (localStorage.getItem('preferredTheme') == 'dark') {
+          setDarkMode(true)
+        }
+        function setDarkMode(isDark) {
+          var darkBtn = document.getElementById('darkBtn')
+          var lightBtn = document.getElementById('lightBtn')
+          if (isDark) {
+            lightBtn.style.display = "block"
+            darkBtn.style.display = "none"
+            localStorage.setItem('preferredTheme', 'dark');
+          } else {
+            lightBtn.style.display = "none"
+            darkBtn.style.display = "block"
+            localStorage.removeItem('preferredTheme');
+          }
+          document.body.classList.toggle("darkmode");
+        }
+      </script>
+    </h1>
+  </div>
+
+  <div class="six columns ml-1">
+    <h1 class="mt-2">
+      Weaverzhu&#39;s blog
+    </h1>
+  </div>
+
+  <div class="twelve columns">
+    <div class="row">
+      <div class="nine columns left">
+        <a href="/">Home</a>
+        
+        
+          
+            <a href="mailto:weaverzhu@outlook.com" target="_blank" class="ml">Email</a>
+          
+        
+      </div>
+    </div>
+    <hr style="margin-bottom: 2.6rem">
+  </div>
+</div>
+
+        <div class="trans">
+          <h2>
+  Rimworld 环世界 Mod 代码解读之 Mad Skills (MOD 制作向导)
+</h2>
+
+<h2 id="开篇闲扯"><a href="#开篇闲扯" class="headerlink" title="开篇闲扯"></a>开篇闲扯</h2><p>Rimworld 有一个逼死强迫症的设定就是，小人的技能升级过高之后会导致技能随着时间自然流失。于是就有了一个叫做 <a target="_blank" rel="noopener" href="https://github.com/Ratysz/MadSkills">Mad Skills</a> 的创意工坊 MOD。<a target="_blank" rel="noopener" href="https://steamcommunity.com/sharedfiles/filedetails/?id=731111514&amp;searchtext=mad+skills">创意工坊连接</a></p>
+<ul>
+<li>涉及 C# 代码，采用 <a target="_blank" rel="noopener" href="https://harmony.pardeike.net/">Harmony</a> 注入</li>
+<li>代码量很小</li>
+<li>改变了游戏中的一些行为（指定经验值流失速率等，而这个在代码里面而不是能通过 XML 文件修改），有必要和其他那种修改数值，照着模子添加新的物品的 MOD 区分开来</li>
+</ul>
+<p>所以这里解读 MOD 的代码，顺便做一个 Rimworld 代码 MOD 制作向导（不算是教程，因为大多数内容是官方 Wiki 和论坛上已经有了的</p>
+<ul>
+<li>推荐阅读：<ul>
+<li><a target="_blank" rel="noopener" href="https://rimworldwiki.com/wiki/Modding_Tutorials#XML_tutorials">Rimworld Wiki</a></li>
+<li><a target="_blank" rel="noopener" href="https://ludeon.com/forums/">Rimworld offical forum</a></li>
+</ul>
+</li>
+<li>很多地方只是给出一个上述网站的链接，毕竟做一个写代码的 MOD 涉及的东西还是很多的，已经有的很好的教程就不翻译复制一遍了</li>
+</ul>
+<h2 id="闲扯（续）"><a href="#闲扯（续）" class="headerlink" title="闲扯（续）"></a>闲扯（续）</h2><p>极其不严谨而又粗略的说，Rimworld 先从 XML 中获取各种东西的定义和属性（比如子弹伤害，建筑建造成本等）。先加载一个叫做 Core 的 MOD，然后再加载其他内容，遇到相同的标签就覆盖（MOD做的事情就是替换原来的东西，用相同标签替换只是修改 XML 的其中一种方法）。当然，仅仅在 XML 上下功夫可能满足不了我们，比如修改游戏中的行为逻辑。调整人物的学习速率就是其中的一个，肯定需要修改代码。这个 MOD 可以作为一个代码 MOD 的范例</p>
+<h2 id="如何将自己的代码放到游戏中？"><a href="#如何将自己的代码放到游戏中？" class="headerlink" title="如何将自己的代码放到游戏中？"></a>如何将自己的代码放到游戏中？</h2><p>大致的流程如下：</p>
+<ol>
+<li>大致了解 <a target="_blank" rel="noopener" href="https://rimworldwiki.com/wiki/Modding_Tutorials/Mod_folder_structure">MOD 文件结构</a></li>
+<li>大致了解 <a target="_blank" rel="noopener" href="https://rimworldwiki.com/wiki/Modding_Tutorials#C.23_tutorials">在 Rimworld 中写 C#</a>，涉及到的内容有<ol>
+<li>Setting up</li>
+<li>Hello World，做一个最基本的 MOD</li>
+<li>Decompiling Source Code，推荐使用 <a target="_blank" rel="noopener" href="https://github.com/icsharpcode/ILSpy">ILSpy</a></li>
+<li>Writing Custom Code</li>
+<li>Alter Code at Runtime with Harmony</li>
+<li>Plague Gun (可选) 主要是增加一个武器（类似于用老武器的东西继承过来创建一个新的武器，基本上不需要有新的行为）</li>
+</ol>
+</li>
+</ol>
+<p><code>Verse</code> 命名空间中提供了供继承的 <code>Mod</code> 类和 <code>Modsetting</code> 类，这样的话玩家可以修改 Mod 的设定</p>
+<p>具体请看 <a target="_blank" rel="noopener" href="https://rimworldwiki.com/wiki/Modding_Tutorials/ModSettings">Modding Tutorials/ModSettings</a></p>
+<h3 id="Harmony"><a href="#Harmony" class="headerlink" title="Harmony"></a>Harmony</h3><p>面对一个几千个 <code>.cs</code> 文件的东西要添加代码是一件很迷茫的事情，而且注意到游戏当然是编译好的，我们的代码作为类库编译成 <code>assembly</code> 交给游戏的。我们需要一个工具帮我们处理一切杂事，使得我们只需要提供代码就行了。</p>
+<p>Wiki 明确指出不应该使用任何其他的注入等骚操作，而 <code>Harmony</code> 这玩意的思路是：比如说你想要修改一个方法，你要准备一个具有 <code>HarmonyPatch</code> 属性的类，它指定了要修改的类和方法（这些信息在属性里面），然后准备两个成员方法，它们的参数包括修改的方法的所有参数和返回值的 <code>ref</code> 版本（也就是说可以自由改变参数和返回值</p>
+<ol>
+<li><code>prefix</code> 方法，在调用原方法之前的方法，可以返回 <code>void</code> 或者 <code>bool</code>。如果是 <code>bool</code> 返回 <code>false</code> 便不会执行原方法，相当于用 <code>prefix</code> 替换了原方法</li>
+<li><code>postfix</code> 方法，在调用原方法之后的方法。即使 <code>prefix</code> 返回 false 也会执行</li>
+</ol>
+<p>之后你需要使用 <code>PatchAll</code> 提交你的修改，这个操作在你的 <code>Mod</code> 类的构造函数中执行最适合不过了（加载 Mod 的时候</p>
+<p>具体的看 <a target="_blank" rel="noopener" href="https://harmony.pardeike.net/articles/intro.html">Harmony 文档</a></p>
+<p>事实上 <code>Harmony</code> 最初是专门用来做 Rimworld Mod 的工具。工具甚至能处理 MOD 冲突（不知道能不能拿它去搞太吾绘卷</p>
+<h2 id="了解游戏的代码逻辑"><a href="#了解游戏的代码逻辑" class="headerlink" title="了解游戏的代码逻辑"></a>了解游戏的代码逻辑</h2><p>该反编译工具上场了，请确保已经阅读了这篇 <a target="_blank" rel="noopener" href="https://rimworldwiki.com/wiki/Modding_Tutorials/Decompiling_source_code">Modding Tutorials/Decompiling source code</a></p>
+<p>实际上 MOD 有一下功能：</p>
+<ol>
+<li>指定经验流失速度</li>
+<li>可以设置每天学习经验上限并指定超出</li>
+<li>额外添加 Great Memory 技能（原指降低一半的经验值流失速度）的一个效果：增加学习速度 25%</li>
+</ol>
+<p>加入自己来做这个东西的 MOD，你需要找到写这个逻辑的地方。你应该怎么找呢？</p>
+<ol>
+<li>从文件名推断，寻找含有 <code>Skill</code> 名字的 <code>.cs</code> 文件</li>
+<li>从 XML 中寻找，XML 文件中各种 Def 的属性，然后搜索对应的属性名字找到相关代码。使用 vscode 的 <code>ctrl+shift+f</code> 可以支持在当前目录种多文件寻找</li>
+</ol>
+<h2 id="Code-Mod-cs"><a href="#Code-Mod-cs" class="headerlink" title="Code: Mod.cs"></a>Code: Mod.cs</h2><p>首先是 Mod 被加载的时候使用，<code>SettingsCategory</code> 和 <code>DoSetingsWindowContents</code> 用于 Mod 设置。创建 <code>Harmony</code> 类，然后 <code>PatchAll</code></p>
+<pre class="line-numbers language-csharp" data-language="csharp"><code class="language-csharp"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Mod</span> <span class="token punctuation">:</span> <span class="token type-list"><span class="token class-name">Verse<span class="token punctuation">.</span>Mod</span></span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token class-name">ModSettings</span> settings<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token function">Mod</span><span class="token punctuation">(</span><span class="token class-name">ModContentPack</span> content<span class="token punctuation">)</span> <span class="token punctuation">:</span> <span class="token keyword">base</span><span class="token punctuation">(</span>content<span class="token punctuation">)</span>
+    <span class="token punctuation">&#123;</span>
+        <span class="token class-name"><span class="token keyword">var</span></span> harmony <span class="token operator">=</span> HarmonyInstance<span class="token punctuation">.</span><span class="token function">Create</span><span class="token punctuation">(</span><span class="token string">"io.github.ratysz.madskills"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        harmony<span class="token punctuation">.</span><span class="token function">PatchAll</span><span class="token punctuation">(</span>Assembly<span class="token punctuation">.</span><span class="token function">GetExecutingAssembly</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        settings <span class="token operator">=</span> <span class="token generic-method"><span class="token function">GetSettings</span><span class="token generic class-name"><span class="token punctuation">&lt;</span>ModSettings<span class="token punctuation">></span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">override</span> <span class="token return-type class-name"><span class="token keyword">string</span></span> <span class="token function">SettingsCategory</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> settings<span class="token punctuation">.</span><span class="token function">SettingsCategory</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">override</span> <span class="token return-type class-name"><span class="token keyword">void</span></span> <span class="token function">DoSettingsWindowContents</span><span class="token punctuation">(</span><span class="token class-name">Rect</span> inRect<span class="token punctuation">)</span>
+    <span class="token punctuation">&#123;</span>
+        settings<span class="token punctuation">.</span><span class="token function">DoSettingsWindowContents</span><span class="token punctuation">(</span>inRect<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Code-ModSettings-cs"><a href="#Code-ModSettings-cs" class="headerlink" title="Code: ModSettings.cs"></a>Code: ModSettings.cs</h2><p>首先是修改 Great Memory 技能的功能，我们找到游戏代码中的 <code>DefGenerator</code>，这个静态类用于生成游戏中各种东西的定义，当然包括了技能的定义。我们要做的就是在 Great Memory 的定义生成之后再改变它的功能，写一个 <code>postfix</code> 函数</p>
+<p>由于原技能 Great Memory 的属性在 XML 文件中，我们需要 <code>DefDatabase</code> 获得这些信息。 Refer to this <a target="_blank" rel="noopener" href="https://rimworldwiki.com/wiki/Modding_Tutorials/Linking_XML_and_C">Modding_Tutorials/Linking_XML_and_C</a></p>
+<p>经过耐心的搜索，发现加载 Def 位于 <code>Rimworld.DefGenerator</code>。再次提一下：</p>
+<ol>
+<li>从文件名，方法名，变量名查找灵感，也可以从 XML 文件（位于 <code>Mods/Core/</code>）的属性得到类型名称。比如说在这个问题中你是不是想找找看 <code>DefDatabase</code> 哪里搞来的数据？在所有文件中寻找 <code>DefDatabase.Add</code> 试试看！</li>
+<li>从别人的 MOD 代码学习，如果这个 MOD 能做 A… 我是不是就可以做 B…</li>
+<li>不要尝试搞懂所有的东西，如果你想找技能数据加载的地方，就不用把整个游戏的代码都理解下来</li>
+</ol>
+<p>搜索 GreatMemory，结合 XML 看一看 <code>Traits_Singular.xml</code> </p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>TraitDef</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>defName</span><span class="token punctuation">></span></span>GreatMemory<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>defName</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>commonality</span><span class="token punctuation">></span></span>1.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>commonality</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>degreeDatas</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span><span class="token punctuation">></span></span>great memory<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">></span></span>&#123;PAWN_nameDef&#125; has a fantastic memory for detail. &#123;PAWN_pronoun&#125; will lose unused skills at half the rate of other people.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>degreeDatas</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>TraitDef</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>包含了技能的介绍信息，这里肯定也要改</p>
+<pre class="line-numbers language-csharp" data-language="csharp"><code class="language-csharp"><span class="token keyword">namespace</span> <span class="token namespace">RTMadSkills</span>
+<span class="token punctuation">&#123;</span>
+	<span class="token punctuation">[</span><span class="token attribute"><span class="token class-name">HarmonyPatch</span><span class="token attribute-arguments"><span class="token punctuation">(</span><span class="token keyword">typeof</span><span class="token punctuation">(</span><span class="token type-expression class-name">DefGenerator</span><span class="token punctuation">)</span><span class="token punctuation">)</span></span></span><span class="token punctuation">]</span>
+	<span class="token punctuation">[</span><span class="token attribute"><span class="token class-name">HarmonyPatch</span><span class="token attribute-arguments"><span class="token punctuation">(</span><span class="token string">"GenerateImpliedDefs_PostResolve"</span><span class="token punctuation">)</span></span></span><span class="token punctuation">]</span>
+	<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ModSettingsDefJockey</span>
+	<span class="token punctuation">&#123;</span>
+		<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">FieldInfo</span> greatMemoryDegreeDatasField <span class="token operator">=</span> AccessTools<span class="token punctuation">.</span><span class="token function">Field</span><span class="token punctuation">(</span><span class="token keyword">typeof</span><span class="token punctuation">(</span><span class="token type-expression class-name">TraitDef</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"degreeDatas"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+		<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name"><span class="token keyword">bool</span></span> valid <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+		<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">TraitDef</span> greatMemory <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+		<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">List<span class="token punctuation">&lt;</span>TraitDegreeData<span class="token punctuation">></span></span> greatMemoryDegreeDatasBackup <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+		<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">List<span class="token punctuation">&lt;</span>TraitDegreeData<span class="token punctuation">></span></span> greatMemoryDegreeDatasNew <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+
+		<span class="token keyword">static</span> <span class="token return-type class-name"><span class="token keyword">void</span></span> <span class="token function">Postfix</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		<span class="token punctuation">&#123;</span>
+			<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>valid<span class="token punctuation">)</span>
+			<span class="token punctuation">&#123;</span>
+				greatMemory <span class="token operator">=</span> DefDatabase<span class="token operator">&lt;</span>TraitDef<span class="token operator">></span><span class="token punctuation">.</span><span class="token function">GetNamed</span><span class="token punctuation">(</span><span class="token string">"GreatMemory"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				greatMemoryDegreeDatasBackup <span class="token operator">=</span> <span class="token punctuation">(</span>List<span class="token operator">&lt;</span>TraitDegreeData<span class="token operator">></span><span class="token punctuation">)</span>greatMemoryDegreeDatasField<span class="token punctuation">.</span><span class="token function">GetValue</span><span class="token punctuation">(</span>greatMemory<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+				<span class="token class-name">StatModifier</span> modifier <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token constructor-invocation class-name">StatModifier</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				modifier<span class="token punctuation">.</span>stat <span class="token operator">=</span> DefDatabase<span class="token operator">&lt;</span>StatDef<span class="token operator">></span><span class="token punctuation">.</span><span class="token function">GetNamed</span><span class="token punctuation">(</span><span class="token string">"GlobalLearningFactor"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				modifier<span class="token punctuation">.</span><span class="token keyword">value</span> <span class="token operator">=</span> <span class="token number">0.25f</span><span class="token punctuation">;</span>
+				<span class="token class-name">TraitDegreeData</span> data <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token constructor-invocation class-name">TraitDegreeData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				data<span class="token punctuation">.</span>statOffsets <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token constructor-invocation class-name">List<span class="token punctuation">&lt;</span>StatModifier<span class="token punctuation">></span></span>
+				<span class="token punctuation">&#123;</span>
+					modifier
+				<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+				data<span class="token punctuation">.</span>label <span class="token operator">=</span> greatMemoryDegreeDatasBackup<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>label<span class="token punctuation">;</span>
+				data<span class="token punctuation">.</span>description <span class="token operator">=</span> <span class="token string">"MadSkills_AlternativeGreatMemoryDescription"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				greatMemoryDegreeDatasNew <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token constructor-invocation class-name">List<span class="token punctuation">&lt;</span>TraitDegreeData<span class="token punctuation">></span></span>
+				<span class="token punctuation">&#123;</span>
+					data
+				<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+
+				valid <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#125;</span>
+			<span class="token function">ApplyChanges</span><span class="token punctuation">(</span>ModSettings<span class="token punctuation">.</span>greatMemoryAltered<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+        <span class="token keyword">static</span> <span class="token keyword">public</span> <span class="token return-type class-name"><span class="token keyword">void</span></span> <span class="token function">ApplyChanges</span><span class="token punctuation">(</span><span class="token class-name"><span class="token keyword">bool</span></span> altered<span class="token punctuation">)</span>
+		<span class="token punctuation">&#123;</span>
+			<span class="token keyword">if</span> <span class="token punctuation">(</span>valid<span class="token punctuation">)</span>
+			<span class="token punctuation">&#123;</span>
+				<span class="token keyword">if</span> <span class="token punctuation">(</span>altered<span class="token punctuation">)</span>
+				<span class="token punctuation">&#123;</span>
+					greatMemory<span class="token punctuation">.</span>degreeDatas <span class="token operator">=</span> greatMemoryDegreeDatasNew<span class="token punctuation">;</span>
+					Log<span class="token punctuation">.</span><span class="token function">Message</span><span class="token punctuation">(</span><span class="token string">"[MadSkills]: changed behavior of Great Memory trait."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token punctuation">&#125;</span>
+				<span class="token keyword">else</span>
+				<span class="token punctuation">&#123;</span>
+					greatMemory<span class="token punctuation">.</span>degreeDatas <span class="token operator">=</span> greatMemoryDegreeDatasBackup<span class="token punctuation">;</span>
+					Log<span class="token punctuation">.</span><span class="token function">Message</span><span class="token punctuation">(</span><span class="token string">"[MadSkills]: restored behavior of Great Memory trait."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token punctuation">&#125;</span>
+			<span class="token punctuation">&#125;</span>
+		<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>保存原来的数据，然后为新的 <code>degreedata</code> 添加一个 25% 的学习速率加成。哪里能改全局学习速率？XML 中没有数据，但是找到 XML 中对于 <code>FastLearner</code>：</p>
+<p>这说明我们要在 <code>degreeData</code> 里面依照 Fast Learner 添加相同的效果就行了。</p>
+<pre class="line-numbers language-XML" data-language="XML"><code class="language-XML">&lt;TraitDef&gt;
+    &lt;defName&gt;FastLearner&lt;&#x2F;defName&gt;
+    &lt;degreeDatas&gt;
+        &lt;li&gt;
+            &lt;label&gt;fast learner&lt;&#x2F;label&gt;
+            &lt;description&gt;&#123;PAWN_nameDef&#125; has a knack for learning. &#123;PAWN_pronoun&#125; picks things up much faster than others.&lt;&#x2F;description&gt;
+            &lt;statOffsets&gt;
+                &lt;GlobalLearningFactor&gt;0.75&lt;&#x2F;GlobalLearningFactor&gt;
+            &lt;&#x2F;statOffsets&gt;
+        &lt;&#x2F;li&gt;
+    &lt;&#x2F;degreeDatas&gt;
+&lt;&#x2F;TraitDef&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>发现有 <code>GlobalLearningFactor</code> 这个属性名字，go for it。找到 <code>SkillRecord.cs</code> 和 <code>StatDefOf.cs</code> 两个文件，你发现了更加令人激动的东西，<code>SkillRecord</code> 有很多有用的信息比如 <code>xpSinceMidnight</code> 定义了每天学习的 xp 用于判断是否达到上限，<code>LearnRateFactor</code> 描述了各种学习速率.</p>
+<pre class="line-numbers language-csharp" data-language="csharp"><code class="language-csharp"><span class="token keyword">private</span> <span class="token class-name">Pawn</span> pawn<span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token class-name">SkillDef</span> def<span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token class-name"><span class="token keyword">int</span></span> levelInt<span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token class-name">Passion</span> passion<span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token class-name"><span class="token keyword">float</span></span> xpSinceLastLevel<span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token class-name"><span class="token keyword">float</span></span> xpSinceMidnight<span class="token punctuation">;</span>
+
+<span class="token keyword">private</span> <span class="token class-name">BoolUnknown</span> cachedTotallyDisabled <span class="token operator">=</span> BoolUnknown<span class="token punctuation">.</span>Unknown<span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">const</span> <span class="token class-name"><span class="token keyword">int</span></span> IntervalTicks <span class="token operator">=</span> <span class="token number">200</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">const</span> <span class="token class-name"><span class="token keyword">int</span></span> MinLevel <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">const</span> <span class="token class-name"><span class="token keyword">int</span></span> MaxLevel <span class="token operator">=</span> <span class="token number">20</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">const</span> <span class="token class-name"><span class="token keyword">int</span></span> MaxFullRateXpPerDay <span class="token operator">=</span> <span class="token number">4000</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">const</span> <span class="token class-name"><span class="token keyword">int</span></span> MasterSkillThreshold <span class="token operator">=</span> <span class="token number">14</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">const</span> <span class="token class-name"><span class="token keyword">float</span></span> SaturatedLearningFactor <span class="token operator">=</span> <span class="token number">0.2f</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">const</span> <span class="token class-name"><span class="token keyword">float</span></span> LearnFactorPassionNone <span class="token operator">=</span> <span class="token number">0.35f</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">const</span> <span class="token class-name"><span class="token keyword">float</span></span> LearnFactorPassionMinor <span class="token operator">=</span> <span class="token number">1f</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">const</span> <span class="token class-name"><span class="token keyword">float</span></span> LearnFactorPassionMajor <span class="token operator">=</span> <span class="token number">1.5f</span><span class="token punctuation">;</span>
+<span class="token comment">// ... other code</span>
+<span class="token keyword">public</span> <span class="token return-type class-name"><span class="token keyword">float</span></span> <span class="token function">LearnRateFactor</span><span class="token punctuation">(</span><span class="token class-name"><span class="token keyword">bool</span></span> direct <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span>DebugSettings<span class="token punctuation">.</span>fastLearning<span class="token punctuation">)</span>
+	<span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> <span class="token number">200f</span><span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token class-name"><span class="token keyword">float</span></span> num<span class="token punctuation">;</span>
+	<span class="token keyword">switch</span> <span class="token punctuation">(</span>passion<span class="token punctuation">)</span>
+	<span class="token punctuation">&#123;</span>
+	<span class="token keyword">case</span> Passion<span class="token punctuation">.</span>None<span class="token punctuation">:</span>
+		num <span class="token operator">=</span> <span class="token number">0.35f</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">case</span> Passion<span class="token punctuation">.</span>Minor<span class="token punctuation">:</span>
+		num <span class="token operator">=</span> <span class="token number">1f</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">case</span> Passion<span class="token punctuation">.</span>Major<span class="token punctuation">:</span>
+		num <span class="token operator">=</span> <span class="token number">1.5f</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">default</span><span class="token punctuation">:</span>
+		<span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token constructor-invocation class-name">NotImplementedException</span><span class="token punctuation">(</span><span class="token string">"Passion level "</span> <span class="token operator">+</span> passion<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>direct<span class="token punctuation">)</span>
+	<span class="token punctuation">&#123;</span>
+		num <span class="token operator">*=</span> pawn<span class="token punctuation">.</span><span class="token function">GetStatValue</span><span class="token punctuation">(</span>StatDefOf<span class="token punctuation">.</span>GlobalLearningFactor<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">if</span> <span class="token punctuation">(</span>LearningSaturatedToday<span class="token punctuation">)</span>
+		<span class="token punctuation">&#123;</span>
+			num <span class="token operator">*=</span> <span class="token number">0.2f</span><span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token keyword">return</span> num<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><code>Interval</code> 定义了经验值流失速率</p>
+<pre class="line-numbers language-csharp" data-language="csharp"><code class="language-csharp"><span class="token keyword">public</span> <span class="token return-type class-name"><span class="token keyword">void</span></span> <span class="token function">Interval</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+	<span class="token class-name"><span class="token keyword">float</span></span> num <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token operator">!</span>pawn<span class="token punctuation">.</span>story<span class="token punctuation">.</span>traits<span class="token punctuation">.</span><span class="token function">HasTrait</span><span class="token punctuation">(</span>TraitDefOf<span class="token punctuation">.</span>GreatMemory<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">?</span> <span class="token number">1f</span> <span class="token punctuation">:</span> <span class="token number">0.5f</span><span class="token punctuation">;</span>
+	<span class="token keyword">switch</span> <span class="token punctuation">(</span>levelInt<span class="token punctuation">)</span>
+	<span class="token punctuation">&#123;</span>
+	<span class="token keyword">case</span> <span class="token number">10</span><span class="token punctuation">:</span>
+		<span class="token function">Learn</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">0.1f</span> <span class="token operator">*</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">case</span> <span class="token number">11</span><span class="token punctuation">:</span>
+		<span class="token function">Learn</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">0.2f</span> <span class="token operator">*</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">case</span> <span class="token number">12</span><span class="token punctuation">:</span>
+		<span class="token function">Learn</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">0.4f</span> <span class="token operator">*</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">case</span> <span class="token number">13</span><span class="token punctuation">:</span>
+		<span class="token function">Learn</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">0.6f</span> <span class="token operator">*</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">case</span> <span class="token number">14</span><span class="token punctuation">:</span>
+		<span class="token function">Learn</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">1f</span> <span class="token operator">*</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">case</span> <span class="token number">15</span><span class="token punctuation">:</span>
+		<span class="token function">Learn</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">1.8f</span> <span class="token operator">*</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">case</span> <span class="token number">16</span><span class="token punctuation">:</span>
+		<span class="token function">Learn</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">2.8f</span> <span class="token operator">*</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">case</span> <span class="token number">17</span><span class="token punctuation">:</span>
+		<span class="token function">Learn</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">4f</span> <span class="token operator">*</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">case</span> <span class="token number">18</span><span class="token punctuation">:</span>
+		<span class="token function">Learn</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">6f</span> <span class="token operator">*</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">case</span> <span class="token number">19</span><span class="token punctuation">:</span>
+		<span class="token function">Learn</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">8f</span> <span class="token operator">*</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token keyword">case</span> <span class="token number">20</span><span class="token punctuation">:</span>
+		<span class="token function">Learn</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">12f</span> <span class="token operator">*</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">break</span><span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>Gotta！就决定 Patch 这两个函数了。同时在 <code>StatDefOf.cs</code> 里面发现了 <code>GlobalLearningFactor</code> 的类型</p>
+<pre class="line-numbers language-csharp" data-language="csharp"><code class="language-csharp">
+<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">StatDef</span> FoodPoisonChanceFixedHuman<span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">StatDef</span> MoveSpeed<span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">StatDef</span> GlobalLearningFactor<span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">StatDef</span> HungerRateMultiplier<span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">StatDef</span> RestRateMultiplier<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>搜索 <code>degreedata</code>，发现 <code>TraitDegreeData.cs</code> 中有 <code>statOffsets</code> 的描述。好了，你应该知道代码是怎么修改 Great Memory 为增加 25% 学习速率了吧？</p>
+<pre class="line-numbers language-none"><code class="language-none">[MustTranslate]
+public string label;
+
+[Unsaved]
+[TranslationHandle]
+public string untranslatedLabel;
+
+[MustTranslate]
+public string description;
+
+public int degree;
+
+public float commonality &#x3D; 1f;
+
+public List&lt;StatModifier&gt; statOffsets;
+
+public List&lt;StatModifier&gt; statFactors;
+
+public ThinkTreeDef thinkTree;
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>同时加上描述信息。想要不同语言？Refer to this: <a target="_blank" rel="noopener" href="https://rimworldwiki.com/wiki/Plague_Gun/Localisation">Plague_Gun/Localisation</a></p>
+<pre class="line-numbers language-csharp" data-language="csharp"><code class="language-csharp">    <span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ModSettings</span> <span class="token punctuation">:</span> <span class="token type-list"><span class="token class-name">Verse<span class="token punctuation">.</span>ModSettings</span></span>
+	<span class="token punctuation">&#123;</span>
+		<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name"><span class="token keyword">bool</span></span> tiered <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+		<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name"><span class="token keyword">bool</span></span> greatMemoryAltered <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+		<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name"><span class="token keyword">int</span></span> multiplierPercentage <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+		<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token return-type class-name"><span class="token keyword">float</span></span> multiplier
+		<span class="token punctuation">&#123;</span>
+			<span class="token keyword">get</span>
+			<span class="token punctuation">&#123;</span>
+				<span class="token keyword">return</span> multiplierPercentage <span class="token operator">/</span> <span class="token number">100.0f</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#125;</span>
+			<span class="token keyword">set</span>
+			<span class="token punctuation">&#123;</span>
+				multiplierPercentage <span class="token operator">=</span> Mathf<span class="token punctuation">.</span><span class="token function">RoundToInt</span><span class="token punctuation">(</span>multiplier <span class="token operator">*</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#125;</span>
+		<span class="token punctuation">&#125;</span>
+		<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name"><span class="token keyword">float</span></span> dailyXPSaturationThreshold <span class="token operator">=</span> <span class="token number">4000.0f</span><span class="token punctuation">;</span>
+		<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token return-type class-name"><span class="token keyword">float</span></span> saturatedXPMultiplier
+		<span class="token punctuation">&#123;</span>
+			<span class="token keyword">get</span>
+			<span class="token punctuation">&#123;</span>
+				<span class="token keyword">return</span> saturatedXPmultiplierPercentage <span class="token operator">/</span> <span class="token number">100.0f</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#125;</span>
+			<span class="token keyword">set</span>
+			<span class="token punctuation">&#123;</span>
+				saturatedXPmultiplierPercentage <span class="token operator">=</span> Mathf<span class="token punctuation">.</span><span class="token function">RoundToInt</span><span class="token punctuation">(</span>multiplier <span class="token operator">*</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#125;</span>
+		<span class="token punctuation">&#125;</span>
+		<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name"><span class="token keyword">int</span></span> saturatedXPmultiplierPercentage <span class="token operator">=</span> <span class="token number">20</span><span class="token punctuation">;</span>
+
+		<span class="token keyword">public</span> <span class="token keyword">override</span> <span class="token return-type class-name"><span class="token keyword">void</span></span> <span class="token function">ExposeData</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		<span class="token punctuation">&#123;</span>
+			<span class="token class-name"><span class="token keyword">float</span></span> multiplier_shadow <span class="token operator">=</span> multiplier<span class="token punctuation">;</span>
+			<span class="token class-name"><span class="token keyword">float</span></span> saturatedXPMultiplier_shadow <span class="token operator">=</span> saturatedXPMultiplier<span class="token punctuation">;</span>
+			Scribe_Values<span class="token punctuation">.</span><span class="token function">Look</span><span class="token punctuation">(</span><span class="token keyword">ref</span> tiered<span class="token punctuation">,</span> <span class="token string">"tiered"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			Scribe_Values<span class="token punctuation">.</span><span class="token function">Look</span><span class="token punctuation">(</span><span class="token keyword">ref</span> greatMemoryAltered<span class="token punctuation">,</span> <span class="token string">"greatMemoryAltered"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			Scribe_Values<span class="token punctuation">.</span><span class="token function">Look</span><span class="token punctuation">(</span><span class="token keyword">ref</span> multiplier_shadow<span class="token punctuation">,</span> <span class="token string">"multiplier"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			Scribe_Values<span class="token punctuation">.</span><span class="token function">Look</span><span class="token punctuation">(</span><span class="token keyword">ref</span> dailyXPSaturationThreshold<span class="token punctuation">,</span> <span class="token string">"dailyXPSaturationThreshold"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			Scribe_Values<span class="token punctuation">.</span><span class="token function">Look</span><span class="token punctuation">(</span><span class="token keyword">ref</span> saturatedXPMultiplier_shadow<span class="token punctuation">,</span> <span class="token string">"saturatedXPMultiplier"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			Log<span class="token punctuation">.</span><span class="token function">Message</span><span class="token punctuation">(</span><span class="token string">"[MadSkills]: settings initialized, multiplier is "</span> <span class="token operator">+</span> multiplier_shadow
+				<span class="token operator">+</span> <span class="token string">", "</span> <span class="token operator">+</span> <span class="token punctuation">(</span>tiered <span class="token punctuation">?</span> <span class="token string">"tiered"</span> <span class="token punctuation">:</span> <span class="token string">"not tiered"</span><span class="token punctuation">)</span>
+				<span class="token operator">+</span> <span class="token string">", daily XP threshold is "</span> <span class="token operator">+</span> dailyXPSaturationThreshold
+				<span class="token operator">+</span> <span class="token string">", saturated XP multiplier is "</span> <span class="token operator">+</span> saturatedXPMultiplier
+				<span class="token operator">+</span> <span class="token string">", Great Memory trait is "</span> <span class="token operator">+</span> <span class="token punctuation">(</span>greatMemoryAltered <span class="token punctuation">?</span> <span class="token string">""</span> <span class="token punctuation">:</span> <span class="token string">"not "</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"altered."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			ModSettingsDefJockey<span class="token punctuation">.</span><span class="token function">ApplyChanges</span><span class="token punctuation">(</span>greatMemoryAltered<span class="token punctuation">)</span><span class="token punctuation">;</span>
+			multiplierPercentage <span class="token operator">=</span> Mathf<span class="token punctuation">.</span><span class="token function">RoundToInt</span><span class="token punctuation">(</span>multiplier_shadow <span class="token operator">*</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			saturatedXPmultiplierPercentage <span class="token operator">=</span> Mathf<span class="token punctuation">.</span><span class="token function">RoundToInt</span><span class="token punctuation">(</span>saturatedXPMultiplier_shadow <span class="token operator">*</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token keyword">base</span><span class="token punctuation">.</span><span class="token function">ExposeData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+
+		<span class="token keyword">public</span> <span class="token return-type class-name"><span class="token keyword">string</span></span> <span class="token function">SettingsCategory</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		<span class="token punctuation">&#123;</span>
+			<span class="token keyword">return</span> <span class="token string">"MadSkills_SettingsCategory"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+
+		<span class="token keyword">public</span> <span class="token return-type class-name"><span class="token keyword">void</span></span> <span class="token function">DoSettingsWindowContents</span><span class="token punctuation">(</span><span class="token class-name">Rect</span> rect<span class="token punctuation">)</span>
+		<span class="token punctuation">&#123;</span>
+			<span class="token class-name">Listing_Standard</span> list <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token constructor-invocation class-name">Listing_Standard</span><span class="token punctuation">(</span>GameFont<span class="token punctuation">.</span>Small<span class="token punctuation">)</span><span class="token punctuation">;</span>
+			list<span class="token punctuation">.</span>ColumnWidth <span class="token operator">=</span> rect<span class="token punctuation">.</span>width <span class="token operator">/</span> <span class="token number">3</span><span class="token punctuation">;</span>
+			list<span class="token punctuation">.</span><span class="token function">Begin</span><span class="token punctuation">(</span>rect<span class="token punctuation">)</span><span class="token punctuation">;</span>
+			list<span class="token punctuation">.</span><span class="token function">Gap</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#123;</span>
+				<span class="token class-name"><span class="token keyword">string</span></span> buffer <span class="token operator">=</span> multiplierPercentage<span class="token punctuation">.</span><span class="token function">ToString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">Rect</span> rectLine <span class="token operator">=</span> list<span class="token punctuation">.</span><span class="token function">GetRect</span><span class="token punctuation">(</span>Text<span class="token punctuation">.</span>LineHeight<span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">Rect</span> rectLeft <span class="token operator">=</span> rectLine<span class="token punctuation">.</span><span class="token function">LeftHalf</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Rounded</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">Rect</span> rectRight <span class="token operator">=</span> rectLine<span class="token punctuation">.</span><span class="token function">RightHalf</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Rounded</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">Rect</span> rectPercent <span class="token operator">=</span> rectRight<span class="token punctuation">.</span><span class="token function">RightPartPixels</span><span class="token punctuation">(</span>Text<span class="token punctuation">.</span>LineHeight<span class="token punctuation">)</span><span class="token punctuation">;</span>
+				rectRight <span class="token operator">=</span> rectRight<span class="token punctuation">.</span><span class="token function">LeftPartPixels</span><span class="token punctuation">(</span>rectRight<span class="token punctuation">.</span>width <span class="token operator">-</span> Text<span class="token punctuation">.</span>LineHeight<span class="token punctuation">)</span><span class="token punctuation">;</span>
+				Widgets<span class="token punctuation">.</span><span class="token function">DrawHighlightIfMouseover</span><span class="token punctuation">(</span>rectLine<span class="token punctuation">)</span><span class="token punctuation">;</span>
+				TooltipHandler<span class="token punctuation">.</span><span class="token function">TipRegion</span><span class="token punctuation">(</span>rectLine<span class="token punctuation">,</span> <span class="token string">"MadSkills_MultiplierTip"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">TextAnchor</span> anchorBuffer <span class="token operator">=</span> Text<span class="token punctuation">.</span>Anchor<span class="token punctuation">;</span>
+				Text<span class="token punctuation">.</span>Anchor <span class="token operator">=</span> TextAnchor<span class="token punctuation">.</span>MiddleLeft<span class="token punctuation">;</span>
+				Widgets<span class="token punctuation">.</span><span class="token function">Label</span><span class="token punctuation">(</span>rectLeft<span class="token punctuation">,</span> <span class="token string">"MadSkills_MultiplierLabel"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				Text<span class="token punctuation">.</span>Anchor <span class="token operator">=</span> anchorBuffer<span class="token punctuation">;</span>
+				Widgets<span class="token punctuation">.</span><span class="token function">TextFieldNumeric</span><span class="token punctuation">(</span>rectRight<span class="token punctuation">,</span> <span class="token keyword">ref</span> multiplierPercentage<span class="token punctuation">,</span> <span class="token keyword">ref</span> buffer<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">10000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				Widgets<span class="token punctuation">.</span><span class="token function">Label</span><span class="token punctuation">(</span>rectPercent<span class="token punctuation">,</span> <span class="token string">"%"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#125;</span>
+			list<span class="token punctuation">.</span><span class="token function">CheckboxLabeled</span><span class="token punctuation">(</span>
+				<span class="token string">"MadSkills_TieredLabel"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+				<span class="token keyword">ref</span> tiered<span class="token punctuation">,</span>
+				<span class="token string">"MadSkills_TieredTip"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			list<span class="token punctuation">.</span><span class="token function">CheckboxLabeled</span><span class="token punctuation">(</span>
+				<span class="token string">"MadSkills_AlterGreatMemoryLabel"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+				<span class="token keyword">ref</span> greatMemoryAltered<span class="token punctuation">,</span>
+				<span class="token string">"MadSkills_AlterGreatMemoryTip"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			list<span class="token punctuation">.</span><span class="token function">Gap</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#123;</span>
+				<span class="token class-name"><span class="token keyword">string</span></span> buffer <span class="token operator">=</span> dailyXPSaturationThreshold<span class="token punctuation">.</span><span class="token function">ToString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">Rect</span> rectLine <span class="token operator">=</span> list<span class="token punctuation">.</span><span class="token function">GetRect</span><span class="token punctuation">(</span>Text<span class="token punctuation">.</span>LineHeight<span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">Rect</span> rectLeft <span class="token operator">=</span> rectLine<span class="token punctuation">.</span><span class="token function">LeftHalf</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Rounded</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">Rect</span> rectRight <span class="token operator">=</span> rectLine<span class="token punctuation">.</span><span class="token function">RightHalf</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Rounded</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				Widgets<span class="token punctuation">.</span><span class="token function">DrawHighlightIfMouseover</span><span class="token punctuation">(</span>rectLine<span class="token punctuation">)</span><span class="token punctuation">;</span>
+				TooltipHandler<span class="token punctuation">.</span><span class="token function">TipRegion</span><span class="token punctuation">(</span>rectLine<span class="token punctuation">,</span> <span class="token string">"MadSkills_DailyXPSaturationThresholdTip"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">TextAnchor</span> anchorBuffer <span class="token operator">=</span> Text<span class="token punctuation">.</span>Anchor<span class="token punctuation">;</span>
+				Text<span class="token punctuation">.</span>Anchor <span class="token operator">=</span> TextAnchor<span class="token punctuation">.</span>MiddleLeft<span class="token punctuation">;</span>
+				Widgets<span class="token punctuation">.</span><span class="token function">Label</span><span class="token punctuation">(</span>rectLeft<span class="token punctuation">,</span> <span class="token string">"MadSkills_DailyXPSaturationThresholdLabel"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				Text<span class="token punctuation">.</span>Anchor <span class="token operator">=</span> anchorBuffer<span class="token punctuation">;</span>
+				Widgets<span class="token punctuation">.</span><span class="token function">TextFieldNumeric</span><span class="token punctuation">(</span>rectRight<span class="token punctuation">,</span> <span class="token keyword">ref</span> dailyXPSaturationThreshold<span class="token punctuation">,</span> <span class="token keyword">ref</span> buffer<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">100000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#125;</span>
+			<span class="token punctuation">&#123;</span>
+				<span class="token class-name"><span class="token keyword">string</span></span> buffer <span class="token operator">=</span> saturatedXPmultiplierPercentage<span class="token punctuation">.</span><span class="token function">ToString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">Rect</span> rectLine <span class="token operator">=</span> list<span class="token punctuation">.</span><span class="token function">GetRect</span><span class="token punctuation">(</span>Text<span class="token punctuation">.</span>LineHeight<span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">Rect</span> rectLeft <span class="token operator">=</span> rectLine<span class="token punctuation">.</span><span class="token function">LeftHalf</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Rounded</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">Rect</span> rectRight <span class="token operator">=</span> rectLine<span class="token punctuation">.</span><span class="token function">RightHalf</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Rounded</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">Rect</span> rectPercent <span class="token operator">=</span> rectRight<span class="token punctuation">.</span><span class="token function">RightPartPixels</span><span class="token punctuation">(</span>Text<span class="token punctuation">.</span>LineHeight<span class="token punctuation">)</span><span class="token punctuation">;</span>
+				rectRight <span class="token operator">=</span> rectRight<span class="token punctuation">.</span><span class="token function">LeftPartPixels</span><span class="token punctuation">(</span>rectRight<span class="token punctuation">.</span>width <span class="token operator">-</span> Text<span class="token punctuation">.</span>LineHeight<span class="token punctuation">)</span><span class="token punctuation">;</span>
+				Widgets<span class="token punctuation">.</span><span class="token function">DrawHighlightIfMouseover</span><span class="token punctuation">(</span>rectLine<span class="token punctuation">)</span><span class="token punctuation">;</span>
+				TooltipHandler<span class="token punctuation">.</span><span class="token function">TipRegion</span><span class="token punctuation">(</span>rectLine<span class="token punctuation">,</span> <span class="token string">"MadSkills_SaturatedXPMultiplierTip"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">TextAnchor</span> anchorBuffer <span class="token operator">=</span> Text<span class="token punctuation">.</span>Anchor<span class="token punctuation">;</span>
+				Text<span class="token punctuation">.</span>Anchor <span class="token operator">=</span> TextAnchor<span class="token punctuation">.</span>MiddleLeft<span class="token punctuation">;</span>
+				Widgets<span class="token punctuation">.</span><span class="token function">Label</span><span class="token punctuation">(</span>rectLeft<span class="token punctuation">,</span> <span class="token string">"MadSkills_SaturatedXPMultiplierLabel"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				Text<span class="token punctuation">.</span>Anchor <span class="token operator">=</span> anchorBuffer<span class="token punctuation">;</span>
+				Widgets<span class="token punctuation">.</span><span class="token function">TextFieldNumeric</span><span class="token punctuation">(</span>rectRight<span class="token punctuation">,</span> <span class="token keyword">ref</span> saturatedXPmultiplierPercentage<span class="token punctuation">,</span> <span class="token keyword">ref</span> buffer<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">10000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				Widgets<span class="token punctuation">.</span><span class="token function">Label</span><span class="token punctuation">(</span>rectPercent<span class="token punctuation">,</span> <span class="token string">"%"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#125;</span>
+			list<span class="token punctuation">.</span><span class="token function">End</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这部分主要用于 ModSettings, Refer to this: <a target="_blank" rel="noopener" href="https://rimworldwiki.com/wiki/Modding_Tutorials/ModSettings">Modding Tutorials/ModSettings</a></p>
+<p>可以发现默认的每天全速学习上限是 4000，超过之后以 20% 速率学习。然后定义 Mod 设置的东西，包括写入数据 <code>ExposeData</code>，UI 设置 <code>DoSettingsWindowContents</code> 等</p>
+<h2 id="Code-Patch-LearningSaturation-cs"><a href="#Code-Patch-LearningSaturation-cs" class="headerlink" title="Code: Patch_LearningSaturation.cs"></a>Code: Patch_LearningSaturation.cs</h2><p>postfix 方法，将原来的学习厌倦逻辑去掉，然后改成自己的。如果要改变不同热情程度对学习效率的影响，你也应该知道该怎么做了吧？</p>
+<pre class="line-numbers language-csharp" data-language="csharp"><code class="language-csharp"><span class="token punctuation">[</span><span class="token attribute"><span class="token class-name">HarmonyPatch</span><span class="token attribute-arguments"><span class="token punctuation">(</span><span class="token keyword">typeof</span><span class="token punctuation">(</span><span class="token type-expression class-name">SkillRecord</span><span class="token punctuation">)</span><span class="token punctuation">)</span></span></span><span class="token punctuation">]</span>
+<span class="token punctuation">[</span><span class="token attribute"><span class="token class-name">HarmonyPatch</span><span class="token attribute-arguments"><span class="token punctuation">(</span><span class="token string">"LearnRateFactor"</span><span class="token punctuation">)</span></span></span><span class="token punctuation">]</span>
+<span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">Patch_LearningSaturation</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">static</span> <span class="token return-type class-name"><span class="token keyword">void</span></span> <span class="token function">Postfix</span><span class="token punctuation">(</span><span class="token class-name">SkillRecord</span> __instance<span class="token punctuation">,</span> <span class="token keyword">ref</span> <span class="token class-name"><span class="token keyword">float</span></span> __result<span class="token punctuation">,</span> <span class="token class-name"><span class="token keyword">bool</span></span> direct <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>direct<span class="token punctuation">)</span>
+        <span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>__instance<span class="token punctuation">.</span>LearningSaturatedToday<span class="token punctuation">)</span>
+            <span class="token punctuation">&#123;</span>
+                __result <span class="token operator">/=</span> <span class="token number">0.2f</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>ModSettings<span class="token punctuation">.</span>saturatedXPMultiplier <span class="token operator">!=</span> <span class="token number">1.0f</span>
+                <span class="token operator">&amp;&amp;</span> __instance<span class="token punctuation">.</span>xpSinceMidnight <span class="token operator">></span> ModSettings<span class="token punctuation">.</span>dailyXPSaturationThreshold<span class="token punctuation">)</span>
+            <span class="token punctuation">&#123;</span>
+                __result <span class="token operator">*=</span> ModSettings<span class="token punctuation">.</span>saturatedXPMultiplier<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Code-Patch-LearningSaturationUI-cs"><a href="#Code-Patch-LearningSaturationUI-cs" class="headerlink" title="Code: Patch_LearningSaturationUI.cs"></a>Code: Patch_LearningSaturationUI.cs</h2><p>依葫芦画瓢，添加 UI 信息。主要是把原来的信息替换成新的</p>
+<pre class="line-numbers language-csharp" data-language="csharp"><code class="language-csharp"><span class="token punctuation">[</span><span class="token attribute"><span class="token class-name">HarmonyPatch</span><span class="token attribute-arguments"><span class="token punctuation">(</span><span class="token keyword">typeof</span><span class="token punctuation">(</span><span class="token type-expression class-name">SkillUI</span><span class="token punctuation">)</span><span class="token punctuation">)</span></span></span><span class="token punctuation">]</span>
+<span class="token punctuation">[</span><span class="token attribute"><span class="token class-name">HarmonyPatch</span><span class="token attribute-arguments"><span class="token punctuation">(</span><span class="token string">"GetSkillDescription"</span><span class="token punctuation">)</span></span></span><span class="token punctuation">]</span>
+<span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">Patch_LearningSaturationUI</span>
+<span class="token punctuation">&#123;</span>
+	<span class="token keyword">static</span> <span class="token return-type class-name"><span class="token keyword">void</span></span> <span class="token function">Postfix</span><span class="token punctuation">(</span><span class="token keyword">ref</span> <span class="token class-name"><span class="token keyword">string</span></span> __result<span class="token punctuation">,</span> <span class="token class-name">SkillRecord</span> sk<span class="token punctuation">)</span>
+	<span class="token punctuation">&#123;</span>
+		<span class="token class-name">StringBuilder</span> stringRebuilder <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token constructor-invocation class-name">StringBuilder</span><span class="token punctuation">(</span>__result<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token class-name">StringBuilder</span> oldStringBuilder <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token constructor-invocation class-name">StringBuilder</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">if</span> <span class="token punctuation">(</span>sk<span class="token punctuation">.</span>LearningSaturatedToday<span class="token punctuation">)</span>
+		<span class="token punctuation">&#123;</span>
+			oldStringBuilder<span class="token punctuation">.</span><span class="token function">AppendLine</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			oldStringBuilder<span class="token punctuation">.</span><span class="token function">Append</span><span class="token punctuation">(</span><span class="token string">"LearnedMaxToday"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span>
+				sk<span class="token punctuation">.</span>xpSinceMidnight<span class="token punctuation">,</span>
+				<span class="token number">4000</span><span class="token punctuation">,</span>
+				<span class="token number">0.2f</span><span class="token punctuation">.</span><span class="token function">ToStringPercent</span><span class="token punctuation">(</span><span class="token string">"F0"</span><span class="token punctuation">)</span>
+			<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+		oldStringBuilder<span class="token punctuation">.</span><span class="token function">AppendLine</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		oldStringBuilder<span class="token punctuation">.</span><span class="token function">AppendLine</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		oldStringBuilder<span class="token punctuation">.</span><span class="token function">Append</span><span class="token punctuation">(</span>sk<span class="token punctuation">.</span>def<span class="token punctuation">.</span>description<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token class-name">StringBuilder</span> newStringBuilder <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token constructor-invocation class-name">StringBuilder</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">if</span> <span class="token punctuation">(</span>ModSettings<span class="token punctuation">.</span>saturatedXPMultiplier <span class="token operator">!=</span> <span class="token number">1.0f</span>
+			<span class="token operator">&amp;&amp;</span> sk<span class="token punctuation">.</span>xpSinceMidnight <span class="token operator">></span> ModSettings<span class="token punctuation">.</span>dailyXPSaturationThreshold<span class="token punctuation">)</span>
+		<span class="token punctuation">&#123;</span>
+			newStringBuilder<span class="token punctuation">.</span><span class="token function">AppendLine</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			newStringBuilder<span class="token punctuation">.</span><span class="token function">Append</span><span class="token punctuation">(</span><span class="token string">"LearnedMaxToday"</span><span class="token punctuation">.</span><span class="token function">Translate</span><span class="token punctuation">(</span>
+				sk<span class="token punctuation">.</span>xpSinceMidnight<span class="token punctuation">,</span>
+				Mathf<span class="token punctuation">.</span><span class="token function">RoundToInt</span><span class="token punctuation">(</span>ModSettings<span class="token punctuation">.</span>dailyXPSaturationThreshold<span class="token punctuation">)</span><span class="token punctuation">,</span>
+				ModSettings<span class="token punctuation">.</span>saturatedXPMultiplier<span class="token punctuation">.</span><span class="token function">ToStringPercent</span><span class="token punctuation">(</span><span class="token string">"F0"</span><span class="token punctuation">)</span>
+			<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+		stringRebuilder<span class="token punctuation">.</span><span class="token function">Replace</span><span class="token punctuation">(</span>oldStringBuilder<span class="token punctuation">.</span><span class="token function">ToString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> newStringBuilder<span class="token punctuation">.</span><span class="token function">ToString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		stringRebuilder<span class="token punctuation">.</span><span class="token function">AppendLine</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		stringRebuilder<span class="token punctuation">.</span><span class="token function">AppendLine</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		stringRebuilder<span class="token punctuation">.</span><span class="token function">Append</span><span class="token punctuation">(</span>sk<span class="token punctuation">.</span>def<span class="token punctuation">.</span>description<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		__result <span class="token operator">=</span> stringRebuilder<span class="token punctuation">.</span><span class="token function">ToString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Code-Patch-SkillRecordInterval-cs"><a href="#Code-Patch-SkillRecordInterval-cs" class="headerlink" title="Code: Patch_SkillRecordInterval.cs"></a>Code: Patch_SkillRecordInterval.cs</h2><p>最后一部分是对于 <code>Interval</code> 的修改。注意到这里使用 prefix 方法，返回 <code>false</code> 相当于直接替换了原来的方法。依葫芦画瓢把降低 50% 流失的功能也加上，可以看到这个数据没有出现在 XML 里面，果然是硬编码的</p>
+<pre class="line-numbers language-csharp" data-language="csharp"><code class="language-csharp"><span class="token punctuation">[</span><span class="token attribute"><span class="token class-name">HarmonyPriority</span><span class="token attribute-arguments"><span class="token punctuation">(</span>Priority<span class="token punctuation">.</span>HigherThanNormal<span class="token punctuation">)</span></span></span><span class="token punctuation">]</span>
+<span class="token punctuation">[</span><span class="token attribute"><span class="token class-name">HarmonyPatch</span><span class="token attribute-arguments"><span class="token punctuation">(</span><span class="token keyword">typeof</span><span class="token punctuation">(</span><span class="token type-expression class-name">SkillRecord</span><span class="token punctuation">)</span><span class="token punctuation">)</span></span></span><span class="token punctuation">]</span>
+<span class="token punctuation">[</span><span class="token attribute"><span class="token class-name">HarmonyPatch</span><span class="token attribute-arguments"><span class="token punctuation">(</span><span class="token string">"Interval"</span><span class="token punctuation">)</span></span></span><span class="token punctuation">]</span>
+<span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">Patch_SkillRecordInterval</span>
+<span class="token punctuation">&#123;</span>
+	<span class="token keyword">static</span> <span class="token class-name">FieldInfo</span> pawnField <span class="token operator">=</span> AccessTools<span class="token punctuation">.</span><span class="token function">Field</span><span class="token punctuation">(</span><span class="token keyword">typeof</span><span class="token punctuation">(</span><span class="token type-expression class-name">SkillRecord</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"pawn"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	<span class="token keyword">static</span> <span class="token return-type class-name"><span class="token keyword">bool</span></span> <span class="token function">Prefix</span><span class="token punctuation">(</span><span class="token class-name">SkillRecord</span> __instance<span class="token punctuation">)</span>
+	<span class="token punctuation">&#123;</span>
+		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>ModSettings<span class="token punctuation">.</span>tiered <span class="token operator">||</span> __instance<span class="token punctuation">.</span>XpProgressPercent <span class="token operator">></span> <span class="token number">0.1f</span><span class="token punctuation">)</span>
+		<span class="token punctuation">&#123;</span>
+			<span class="token class-name"><span class="token keyword">float</span></span> greatMemMultiplier <span class="token operator">=</span> <span class="token punctuation">(</span>ModSettings<span class="token punctuation">.</span>greatMemoryAltered <span class="token operator">||</span> <span class="token operator">!</span><span class="token punctuation">(</span>pawnField<span class="token punctuation">.</span><span class="token function">GetValue</span><span class="token punctuation">(</span>__instance<span class="token punctuation">)</span> <span class="token keyword">as</span> <span class="token class-name">Pawn</span><span class="token punctuation">)</span><span class="token punctuation">.</span>story<span class="token punctuation">.</span>traits<span class="token punctuation">.</span><span class="token function">HasTrait</span><span class="token punctuation">(</span>TraitDefOf<span class="token punctuation">.</span>GreatMemory<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">?</span> <span class="token number">1f</span> <span class="token punctuation">:</span> <span class="token number">0.5f</span><span class="token punctuation">;</span>
+			<span class="token class-name"><span class="token keyword">float</span></span> xpToLearn <span class="token operator">=</span> greatMemMultiplier <span class="token operator">*</span> <span class="token function">VanillaMultiplier</span><span class="token punctuation">(</span>__instance<span class="token punctuation">.</span>levelInt<span class="token punctuation">)</span> <span class="token operator">*</span> ModSettings<span class="token punctuation">.</span>multiplier<span class="token punctuation">;</span>
+			<span class="token keyword">if</span> <span class="token punctuation">(</span>xpToLearn <span class="token operator">!=</span> <span class="token number">0.0f</span><span class="token punctuation">)</span>
+			<span class="token punctuation">&#123;</span>
+				__instance<span class="token punctuation">.</span><span class="token function">Learn</span><span class="token punctuation">(</span>xpToLearn<span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#125;</span>
+		<span class="token punctuation">&#125;</span>
+		<span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span>
+
+	<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token return-type class-name"><span class="token keyword">float</span></span> <span class="token function">VanillaMultiplier</span><span class="token punctuation">(</span><span class="token class-name"><span class="token keyword">int</span></span> level<span class="token punctuation">)</span>
+	<span class="token punctuation">&#123;</span>
+		<span class="token keyword">switch</span> <span class="token punctuation">(</span>level<span class="token punctuation">)</span>
+		<span class="token punctuation">&#123;</span>
+			<span class="token keyword">case</span> <span class="token number">10</span><span class="token punctuation">:</span> <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">0.1f</span><span class="token punctuation">;</span>
+			<span class="token keyword">case</span> <span class="token number">11</span><span class="token punctuation">:</span> <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">0.2f</span><span class="token punctuation">;</span>
+			<span class="token keyword">case</span> <span class="token number">12</span><span class="token punctuation">:</span> <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">0.4f</span><span class="token punctuation">;</span>
+			<span class="token keyword">case</span> <span class="token number">13</span><span class="token punctuation">:</span> <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">0.6f</span><span class="token punctuation">;</span>
+			<span class="token keyword">case</span> <span class="token number">14</span><span class="token punctuation">:</span> <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1.0f</span><span class="token punctuation">;</span>
+			<span class="token keyword">case</span> <span class="token number">15</span><span class="token punctuation">:</span> <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1.8f</span><span class="token punctuation">;</span>
+			<span class="token keyword">case</span> <span class="token number">16</span><span class="token punctuation">:</span> <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">2.8f</span><span class="token punctuation">;</span>
+			<span class="token keyword">case</span> <span class="token number">17</span><span class="token punctuation">:</span> <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">4.0f</span><span class="token punctuation">;</span>
+			<span class="token keyword">case</span> <span class="token number">18</span><span class="token punctuation">:</span> <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">6.0f</span><span class="token punctuation">;</span>
+			<span class="token keyword">case</span> <span class="token number">19</span><span class="token punctuation">:</span> <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">8.0f</span><span class="token punctuation">;</span>
+			<span class="token keyword">case</span> <span class="token number">20</span><span class="token punctuation">:</span> <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">12.0f</span><span class="token punctuation">;</span>
+			<span class="token keyword">default</span><span class="token punctuation">:</span> <span class="token keyword">return</span> <span class="token number">0.0f</span><span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="The-End"><a href="#The-End" class="headerlink" title="The End"></a>The End</h2><p>好了，基本大功告成了，剩下的就是各种测试了。（其实做到一半就应该各种测试了）。关于调试，也有很多技巧。Rimworld Modder 是非常幸运的，因为开发组对 Modder 真的很友好，Wiki 和 Forum 也很友好。之后还会有各种类似的 Modding 向导，有朝一日可能也会发布自己的 MOD。敬请期待</p>
+
+  <p>
+    <a class="classtest-link" href="/tags/Mod/" rel="tag">Mod</a>, <a class="classtest-link" href="/tags/Mod-%E6%95%99%E7%A8%8B/" rel="tag">Mod 教程</a>, <a class="classtest-link" href="/tags/Rimworld/" rel="tag">Rimworld</a>, <a class="classtest-link" href="/tags/%E7%8E%AF%E4%B8%96%E7%95%8C/" rel="tag">环世界</a> — 2020年1月27日
+  </p>
+  
+
+    
+          <div class="row mt-2">
+  
+</div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+  <script src="/js/nanobar.min.js"></script>
+  <script>
+    var options = {
+      classname: 'nanobar',
+      id: 'myNanobar'
+    };
+    var nanobar = new Nanobar(options);
+    nanobar.go(30);
+    nanobar.go(76);
+    nanobar.go(100);
+  </script>
+
+</body>
+
+</html>
