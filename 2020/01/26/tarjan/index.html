@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="这篇文章的初衷是为了更好的理解 Tarjan 算法。虽然网上的博客一大堆，但是好像没什么人讲证明。这里结合论文讲解一下，论文链接 和 论文下载 本文主要以易懂的白话（口胡）证明为主，论文中有最严谨的证明 前置知识 稍微了解图论的基础，知道存储图的数据结构邻接表，邻接矩阵等 知道 DFS  内容 如何求无向图割点 如何求无向图点双连通分量 如何求强连通分量  概念搞清楚概念是非常重要的  图 $G">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入浅出 Tarjan 算法 (一)">
+<meta property="og:url" content="https://weaverzhu.github.io/2020/01/26/tarjan/index.html">
+<meta property="og:site_name" content="Weaver_zhu&#39;s blog">
+<meta property="og:description" content="这篇文章的初衷是为了更好的理解 Tarjan 算法。虽然网上的博客一大堆，但是好像没什么人讲证明。这里结合论文讲解一下，论文链接 和 论文下载 本文主要以易懂的白话（口胡）证明为主，论文中有最严谨的证明 前置知识 稍微了解图论的基础，知道存储图的数据结构邻接表，邻接矩阵等 知道 DFS  内容 如何求无向图割点 如何求无向图点双连通分量 如何求强连通分量  概念搞清楚概念是非常重要的  图 $G">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://weaverzhu.github.io/2020/01/26/img/tarjan/fig1.PNG">
+<meta property="og:image" content="https://weaverzhu.github.io/2020/01/26/img/tarjan/fig2.PNG">
+<meta property="og:image" content="https://weaverzhu.github.io/2020/01/26/img/tarjan/fig3.PNG">
+<meta property="article:published_time" content="2020-01-26T04:30:58.000Z">
+<meta property="article:modified_time" content="2022-09-05T23:33:10.107Z">
+<meta property="article:author" content="Weave_zhu">
+<meta property="article:tag" content="Tarjan">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://weaverzhu.github.io/2020/01/26/img/tarjan/fig1.PNG">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>深入浅出 Tarjan 算法 (一)</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" "Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/project/">项目</a></li>
+         
+          <li><a href="/tags/">标签</a></li>
+         
+          <li><a href="/categories/">分类</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇 " href="/2020/01/27/rimworld-mod-codereading1/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇 " href="/2020/01/26/build/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部 " href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章 " href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://weaverzhu.github.io/2020/01/26/tarjan/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://weaverzhu.github.io/2020/01/26/tarjan/&text=深入浅出 Tarjan 算法 (一)"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://weaverzhu.github.io/2020/01/26/tarjan/&title=深入浅出 Tarjan 算法 (一)"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://weaverzhu.github.io/2020/01/26/tarjan/&is_video=false&description=深入浅出 Tarjan 算法 (一)"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=深入浅出 Tarjan 算法 (一)&body=Check out this article: https://weaverzhu.github.io/2020/01/26/tarjan/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://weaverzhu.github.io/2020/01/26/tarjan/&title=深入浅出 Tarjan 算法 (一)"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://weaverzhu.github.io/2020/01/26/tarjan/&title=深入浅出 Tarjan 算法 (一)"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://weaverzhu.github.io/2020/01/26/tarjan/&title=深入浅出 Tarjan 算法 (一)"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://weaverzhu.github.io/2020/01/26/tarjan/&title=深入浅出 Tarjan 算法 (一)"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://weaverzhu.github.io/2020/01/26/tarjan/&name=深入浅出 Tarjan 算法 (一)&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://weaverzhu.github.io/2020/01/26/tarjan/&t=深入浅出 Tarjan 算法 (一)"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="toc-number">1.</span> <span class="toc-text">前置知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AE%B9"><span class="toc-number">2.</span> <span class="toc-text">内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E5%BF%B5"><span class="toc-number">3.</span> <span class="toc-text">概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DFS"><span class="toc-number">4.</span> <span class="toc-text">DFS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8C%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F"><span class="toc-number">5.</span> <span class="toc-text">双连通分量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%BA%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F"><span class="toc-number">6.</span> <span class="toc-text">强连通分量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%89%E5%90%91%E5%9B%BE-DFS"><span class="toc-number">6.1.</span> <span class="toc-text">有向图 DFS</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        深入浅出 Tarjan 算法 (一)
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Weave_zhu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-01-26T04:30:58.000Z" itemprop="datePublished">2020-01-26</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E7%AE%97%E6%B3%95%E7%AB%9E%E8%B5%9B/">算法竞赛</a> › <a class="category-link" href="/categories/%E7%AE%97%E6%B3%95%E7%AB%9E%E8%B5%9B/%E7%AE%97%E6%B3%95/">算法</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/Tarjan/" rel="tag">Tarjan</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>这篇文章的初衷是为了更好的理解 Tarjan 算法。虽然网上的博客一大堆，但是好像没什么人讲证明。这里结合论文讲解一下，<a target="_blank" rel="noopener" href="https://epubs.siam.org/doi/10.1137/0201010">论文链接</a> 和 <a href="/download/papers/Tarjan-1972.pdf">论文下载</a></p>
+<p>本文主要以易懂的白话（口胡）证明为主，论文中有最严谨的证明</p>
+<h2 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2><ol>
+<li>稍微了解图论的基础，知道存储图的数据结构邻接表，邻接矩阵等</li>
+<li>知道 DFS</li>
+</ol>
+<h2 id="内容"><a href="#内容" class="headerlink" title="内容"></a>内容</h2><ol>
+<li>如何求无向图割点</li>
+<li>如何求无向图点双连通分量</li>
+<li>如何求强连通分量</li>
+</ol>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>搞清楚概念是非常重要的</p>
+<ul>
+<li>图 $G = (V,E)$ 表示由点集 $V$ 和 边集 $E$ 组成的有向图或无向图</li>
+<li>边 $(v, w)$ 表示 $v \rightarrow w$ 的有向边或者 $v \leftrightarrow w$ 的无向边</li>
+<li>路径 $p: v \overset{*}{\Rightarrow} w$ 表示 $v$ 到 $w$ 的一条路径<ul>
+<li>简单路径 (simple path) 代表路径上不经过重复的点</li>
+<li>闭合环路 (closed path) 代表经过路径起点重点相同，其他的点和所有的边都仅出现一次。如果一个闭合环路进行等效变换（旋转，翻转）之后变成另一个环路，那么这两个应该被看作同一个闭合环路</li>
+</ul>
+</li>
+<li>有向图的无向图版本：将有向图的每一条边转换成无向图，并且去掉多余的边形成的新无向图</li>
+<li>无向图连通性：如果任意两点间存在一条路径，则说明无向图是联通的 (connected)</li>
+<li>割点: 在一个无向图中，如果有一个顶点集合，删除这个顶点集合以及这个集合中所有顶点相关联的边以后，图的连通分量增多，就称这个点集为割点集合。</li>
+<li>有向有根树 (directed rooted tree) $T$: 是一个有向图，其无向图版本是联通的，有一个点没有被任何边到达称作为树的根节点，所有其他的节点只有一条边指向它。<ul>
+<li>“$(v,w)$ 是 $T$ 的一条边” 被记为 $v \rightarrow w$ 其中 $v$ 是父亲，$w$ 是儿子</li>
+<li>“存在一条由 $v$ 到 $w$ 的路径” 被记为 $v \overset{*}{\rightarrow} w$ 其中 $v$ 是祖先 $w$ 是后代</li>
+<li>另外的，<strong>每一个点都是自己的祖先和后代</strong></li>
+<li>对于 $T$ 中的节点 $v$，$T_v$ 是 $T$ 的子树，包含所有 $v$ 的后代</li>
+<li>对于有向图 $G$，$T$ 是 $G$ 的生成（有根）树代 $G$ 的所有节点，且 $T$ 是 $G$ 的子图</li>
+</ul>
+</li>
+<li>对于二元关系 $R,S$，$R^*$ 代表 $R$ 的闭包，$R^{-1}$ 代表 $R$ 的逆，且<br>$$RS = {(u,w)| \exists v((u,v)\in R \And (v,w) \in S)}$$<pre><code>  表示一种关系的强制组合（感性说法说法）
+</code></pre>
+</li>
+<li>复杂度，不会就感性认识为等价无穷大就行了</li>
+<li>棕榈树 $P$: 棕榈树 $P$ 是一个有向图，包括两个不相交的边集表示为 $v \rightarrow w$ 和 $v \ - \rightarrow w$ 注意到这里箭头表示边的集合，而之前在有根树中表示一条边。假设 $P$ 有以下性质<ol>
+<li>包含边集 $v \rightarrow w$ 的子图 $T$ 是 $P$ 的生成树</li>
+<li>$- \rightarrow \subseteq （\overset{*}{\rightarrow})^{-1}$ 也就是说，不在 $P$ 中的生成树中的边将一个节点连到在 $T$ 中它的一个祖先的点。我们将 $v \ - \rightarrow w$ 称为 $P$ 的叶子（论文中称为 fronds，很多人习惯成为返祖边，而对于 $(v \ - \rightarrow w)^{-1}$ 称为前向边，即直接访问儿子的儿子及其后代的边）在棕榈树中不存在前向边</li>
+</ol>
+</li>
+<li>强连通：对于有向图 $G = (V,E)$， 对于 $\forall v,w \in V \exists p:v \overset{*}{\Rightarrow} w$ 说明图是强连通的</li>
+<li>点双连通: 对于无向图 $G = (V,E)$ 对于 $\forall v,w,a \in V, \exists p:v \overset{*}{\Rightarrow} w (a \not \in p)$ 也就是说去掉任意一点，整个无向图还是联通的则说明图是双连通的。</li>
+<li>强连通分量：有向图的极大强连通子图,称为强连通分量(strongly connected components)</li>
+<li>双联通分量：将无向图图 $G$ 分为 $n$ 个不相交极大双联通子图 $G_i$ 被称为对应的双连通分量。</li>
+</ul>
+<p>对于代码维护的几个数组，也有必要提一下其所代表的意义</p>
+<ul>
+<li><code>dfn[i]</code>: 表示节点 $i$ 是 第 $i$ 个被被 DFS 遍历到的节点</li>
+<li><code>low[i]</code>: 表示在 DFS 树中 $i$ 的后代和 $i$ 的返祖边所到达的点，也就是 ${v} \bigcup {w|v \overset{*}{\rightarrow}\ - \rightarrow w}$，中的最小的 <code>dfn</code>，$\overset{*}{\rightarrow}\ - \rightarrow$ 是棕榈树中的符号。也就是说，<code>low[i]</code> 代表 i 经过一些树边和至多一个返祖边能到达的 dfs 序最小的点</li>
+</ul>
+<h2 id="DFS"><a href="#DFS" class="headerlink" title="DFS"></a>DFS</h2><p>假设 $G$ 是一个联通的无向图，如果我们对其进行一次 DFS 遍历，在这种遍历中每条无向边只走一次（代码中经常把无向边比作两个有向边，我们使用 <code>dfn</code> 帮助判断这个边是否被走过，如果 <code>dfn[v] &gt; dfn[u]</code> 代表 <code>DFS(v)</code> 先执行完，那么肯定的是 $(v,w)$ 已经被检查过了, 跳过 $(u,v)$ 这条边)。将走过的边看作是有向的，方向和 DFS 的顺序相同。则 $G$ 被转化（看作）为有向图 $G’$。那些 DFS 中到达一个新的点走到的边组成一个 $G’$ 的生成树。</p>
+<p>值得一提的是如果搜索是上述的 DFS 的，每一条不在伸展树中的边 $(v,w)$ 中 $w$ 是 $v$ 的一个祖先。如果 $w$ 是 $v$ 的后代，那么 <code>DFS(w)</code> 一定先于 <code>DFS(v)</code> 结束，而 $(w,v)$ 这条边一定会先被检查到，那么 $(v,w)$ 就不会被检查到。（如果想不明白。。请回顾一下 之前讲的无向图 DFS</p>
+<p>那么也就是说，生成树的边和其他的边组成了一颗棕榈树。首先一个棕榈树一定能转换成无向边，因为在棕榈树中只包含在 DFS 树中的边 $v \rightarrow w$ 和 $(v \ - \rightarrow w)^{-1}$ 两个不相交的边集。前者总由父亲指向儿子，后者总由后代指向祖先。因此将所有有向边转换为无向边，一定不会由重复边出现。而刚刚也说明了无向图经过 DFS 遍历之后能变成棕榈树</p>
+<p><img src="../img/tarjan/fig1.PNG" alt="fig1"></p>
+<p>我们使用如下伪代码表示无向图 DFS, $P$ 代表 DFS 生成的棕榈树</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dfs</span>(<span class="params">u, fa</span>) # <span class="title">fa</span> <span class="title">is</span> <span class="title">the</span> <span class="title">father</span> <span class="title">of</span> <span class="title">u</span></span></span><br><span class="line">    dfn[u] = num</span><br><span class="line">    num = num + <span class="number">1</span></span><br><span class="line">    <span class="keyword">for</span> v <span class="keyword">in</span> adjlist[u]:</span><br><span class="line">        <span class="keyword">if</span> v == fa:</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        <span class="keyword">if</span> v <span class="keyword">is</span> <span class="keyword">not</span> numbered:</span><br><span class="line">            construct arc v -&gt; w in P</span><br><span class="line">            dfs(v, w)</span><br><span class="line">        <span class="keyword">elif</span> dfn[w] &lt; dfn[v]:</span><br><span class="line">            construct arc v - -&gt; w in P</span><br></pre></td></tr></table></figure>
+<h2 id="双连通分量"><a href="#双连通分量" class="headerlink" title="双连通分量"></a>双连通分量</h2><p>我们先来讲如何求 <strong>无向图</strong> 双连通分量</p>
+<blockquote>
+<p>引理1：对于无向联通图 $G$，$P$ 是 $G$ 由 DFS 生成的棕榈树，$T$ 是 $P$ 中的生成树。对于任何 $v$ 到 $w$ 的路径 $p: v \overset{*}{\Rightarrow} w$, $P$ 中包含 $v, w$ 的公共祖先</p>
+</blockquote>
+<p><img src="../img/tarjan/fig2.PNG" alt="fig2"></p>
+<p>白话证明：假设 以 $u$ 为树根的 $T_u$ 是最小的包括所有 $p$ 上节点的 $T$ 的子树。如果 $u=v$ 或 $u=w$ 结论成立，否则 $v,w$ 一定分属于两个不同子树（否则就存在更小的子树）。结论是，这样的话 $v,w$ 就一定要从两个不同的子树中经过 $u$ 相互到达。为什么没有一条边从两个子树之间相互连接呢（很多人习惯叫这种边为横插边）。假设存在 $(u,v)$，$u,v$ 属于不同的子树。不妨考虑我们在 <code>DFS(w)</code>，如果已经执行完毕 <code>DFS(v)</code> 那么一定先走 <code>(v,w)</code> 使得 $w$ 是 $v$ 的儿子，产生矛盾。如果没有执行过 <code>DFS(v)</code> 那么检查 <code>(w,v)</code> 的时候 $v$ 同样会成为 $w$ 的儿子，产生矛盾。无向图是没有横插边的，因为两个节点属于不同子树的话，一定有一个点要么没有被遍历到，要么已经完成了遍历。无论如何，这个横插边都应该是生成树的边才对。</p>
+<blockquote>
+<p>引理2 (割点)：对于无向联通图 $G$，$P$ 是 $G$ 由 DFS 生成的棕榈树，$T$ 是 $P$ 中的生成树。对于 $a,v,w$ 是 $G$ 中三个不同的点，其中 $(a,v) \in T$，$w$ 是任意一个不是 $v$ 的后代的点。如果 <code>low[v] &gt;= a</code> 那么 $a$ 是 $G$ 的一个割点，去掉 $a$ 将使得 $v,w$ 互不连通。相应的，如果 $a$ 是一个割点影响 $v$, 那么对任意不是 $a$ 后代的点的 $w$ 都有 $low[v] &gt;= a$</p>
+</blockquote>
+<p>感性认识以下，<code>low[v] &gt;= a</code> 代表经过 $a$ 走到 $v$ 然后无论怎么转，都在 $a$ 的子树下。$a$ 是上面走到 $v$ 的唯一路径。不是 $a$ 的后代也就是说是 $T_a$ 外的一点。割点将子树中的点和子树外的点隔离开来了，这个条件就是子树的根往子树中走只能到达子树中的点。由于没有横插边，</p>
+<p>下面是证明：如果 $v$ 是 $a$ 的儿子，且 <code>low[v] &gt;= a</code> 那么在棕榈树中任何从 $v$ 到达的点<br>都在 $T_v$ 中，且这个子树不包括 $w$。所以在原无向图中从 $v$ 走到 $w$，一定是经过 $(a,v)$ 那条边。</p>
+<p>如果 $a$ 是一个割点，影响 $v,w$ 的连通性</p>
+<ol>
+<li>如果 $a$ 是 $P$ 的根，那么 $a$ 至少有两个出边。那么 <code>low[v] &gt;= dfn[a] = 1</code>，而 $w$ 一定在另一个子树中。否则将不影响连通性</li>
+<li>如果 $a$ 不是 $P$ 的根。假设删去 $a$ 之后剩下的无向图连通分量，一定只包含 $a$ 的后代，否则形不成新的联通分量。新的联通分量将只包含 $a$ 的一个儿子，否则根据引理1 多个儿子的共同祖先 $a$ 也要在连通分量中了。所以新的连通分量不包括 $a$，更不包括 $a$ 的祖先，只有儿子的子树的点。令唯一的儿子为 $v$, $w$ 是 $a$ 的真祖先，那么 <code>low[v] &gt;= a</code>，且 $w$ 不是 $v$ 的后代</li>
+</ol>
+<p>到现在为止我们发现了寻找割点的方法，判断依据就是 <code>dfn[a] &gt;= low[v]</code>，当然需要特判根节点的情况。我们需要两个以上的这样的 <code>v</code> 才能确保根节点是一个割点</p>
+<p>直接给代码了:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">tarjan</span><span class="params">(<span class="keyword">int</span> u, <span class="keyword">int</span> fa)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    dfn[u] = low[u] = ++cnt;</span><br><span class="line">    <span class="keyword">int</span> x = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> v : G[u])</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (v == fa) <span class="keyword">continue</span>;</span><br><span class="line">        <span class="keyword">if</span> (!dfn[v])</span><br><span class="line">        &#123;</span><br><span class="line">            tarjan(v, u);</span><br><span class="line">            x += low[v] &gt;= dfn[u];</span><br><span class="line">            low[u] = min(low[u], low[v]);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (dfn[u] &gt; dfn[v]) low[u] = min(low[u], dfn[v]);</span><br><span class="line">    &#125;</span><br><span class="line">    arc[u] = (x - (fa == <span class="number">-1</span>)) &gt; <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>有些代码里面 <code>else if</code> 直接是 <code>else</code>，实际上的效果是完全一样的</p>
+<blockquote>
+<p>结论 （无向图双连通分量）: 对于无向联通图 $G$，$P$ 是 $G$ 由 DFS 生成的棕榈树，$T$ 是 $P$ 中的生成树。如果 C 是 G 的一个双连通分量，那么 C 的点集构成了 T 的一个子树，且子树的根要么是 T 的根节点，要么是 G 的割点</p>
+</blockquote>
+<p><img src="../img/tarjan/fig3.PNG" alt="fig3"></p>
+<p>先看伪代码:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">biconnect</span>(<span class="params">u, v</span>):</span></span><br><span class="line">    dfn[u] = low[u] = ++cnt</span><br><span class="line">    <span class="keyword">for</span> v <span class="keyword">in</span> adjlist[u]:</span><br><span class="line">        <span class="keyword">if</span> dfn[v] == <span class="number">0</span>:</span><br><span class="line">            add (u,v) to stack</span><br><span class="line">            biconnect(v, u)</span><br><span class="line">            low[u] = <span class="built_in">min</span>(low[u], low[v])</span><br><span class="line">            <span class="keyword">if</span> low[v] &gt; dfn[u]:</span><br><span class="line">                start a new biconnected component</span><br><span class="line">                <span class="keyword">while</span> top edge e = (u_1, u_2) on edge stack has dfn[u_1] &gt; dfn[w]:</span><br><span class="line">                    delete (u_1, u_2) <span class="keyword">from</span> stack <span class="keyword">and</span> add it to current component</span><br><span class="line">                delete (v, w) <span class="keyword">from</span> edge stack <span class="keyword">and</span> add it to current component</span><br><span class="line">        <span class="keyword">elif</span> dfn[v] &lt; dfn[u]:</span><br><span class="line">            add (u,v) to stack</span><br><span class="line">            low[u] = <span class="built_in">min</span>(low[u], low[v])</span><br></pre></td></tr></table></figure>
+
+<p>感性认知一下，就是把每个割点所带领的双联通分量提取出来，方法就是 DFS 的时候使用栈将点存起来，回溯遇到割点就释放出来组成一个新的双连通分量</p>
+<p>算法显然是 $O(V + E)$ 的，因为每条边都只被遍历了一遍，每个点也只被遍历了一遍</p>
+<p>正确性证明：通过对边数进行数学归纳法 (induction)，其实也没有什么复杂的思路过程</p>
+<ul>
+<li>只有一个点显然是对的，即单独的一个双连通分量</li>
+<li>假如对边数为 $E-1$ 的连通无向图 $G$ 方法正确<ul>
+<li>考虑第一个被检查出来的双连通分量，如果此时栈不包括所有的边，那么当前被检查的点 $v$ 是一个割点，它将子树中的边和外面的边分割开来（引理2）。把子树中的边和点作为一个连通分量拿出来，剩余的是一个更小的图，由归纳法得正确。我们只需要考虑这个拿出来得一部分是正确的，这种情况和整个 $G$ 都是一个双连通分量是等效的。（根节点一定满足 <code>low[v] &gt;= dfn[root] = 1</code>)</li>
+<li>反证：假设 $G$ 不是双连通的，那么 $G$ 中包含某个割点，从而会生成一个新的双连通分量，产生矛盾</li>
+</ul>
+</li>
+</ul>
+<p>事实上，对于第一个被拎出来的双连通分量，它要么是根节点，要么是割点，其他的点都不是割点。如果是割点的话，只考虑割点子树的点所代表的诱导分量（包含所有原图边，但是只有点是子集的子图），那么该点就是根节点，所以才认为是等效的。整个分量中都没有割点，由双连通分量和割点的定义可知，整个图是双连通的。</p>
+<h2 id="强连通分量"><a href="#强连通分量" class="headerlink" title="强连通分量"></a>强连通分量</h2><p>我们主要讨论的是有向图的强连通分量的求法。</p>
+<h3 id="有向图-DFS"><a href="#有向图-DFS" class="headerlink" title="有向图 DFS"></a>有向图 DFS</h3>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/project/">项目</a></li>
+         
+          <li><a href="/tags/">标签</a></li>
+         
+          <li><a href="/categories/">分类</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="toc-number">1.</span> <span class="toc-text">前置知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AE%B9"><span class="toc-number">2.</span> <span class="toc-text">内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E5%BF%B5"><span class="toc-number">3.</span> <span class="toc-text">概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DFS"><span class="toc-number">4.</span> <span class="toc-text">DFS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8C%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F"><span class="toc-number">5.</span> <span class="toc-text">双连通分量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%BA%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F"><span class="toc-number">6.</span> <span class="toc-text">强连通分量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%89%E5%90%91%E5%9B%BE-DFS"><span class="toc-number">6.1.</span> <span class="toc-text">有向图 DFS</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://weaverzhu.github.io/2020/01/26/tarjan/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://weaverzhu.github.io/2020/01/26/tarjan/&text=深入浅出 Tarjan 算法 (一)"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://weaverzhu.github.io/2020/01/26/tarjan/&title=深入浅出 Tarjan 算法 (一)"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://weaverzhu.github.io/2020/01/26/tarjan/&is_video=false&description=深入浅出 Tarjan 算法 (一)"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=深入浅出 Tarjan 算法 (一)&body=Check out this article: https://weaverzhu.github.io/2020/01/26/tarjan/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://weaverzhu.github.io/2020/01/26/tarjan/&title=深入浅出 Tarjan 算法 (一)"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://weaverzhu.github.io/2020/01/26/tarjan/&title=深入浅出 Tarjan 算法 (一)"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://weaverzhu.github.io/2020/01/26/tarjan/&title=深入浅出 Tarjan 算法 (一)"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://weaverzhu.github.io/2020/01/26/tarjan/&title=深入浅出 Tarjan 算法 (一)"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://weaverzhu.github.io/2020/01/26/tarjan/&name=深入浅出 Tarjan 算法 (一)&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://weaverzhu.github.io/2020/01/26/tarjan/&t=深入浅出 Tarjan 算法 (一)"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Weave_zhu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/project/">项目</a></li>
+         
+          <li><a href="/tags/">标签</a></li>
+         
+          <li><a href="/categories/">分类</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+
+</body>
+</html>

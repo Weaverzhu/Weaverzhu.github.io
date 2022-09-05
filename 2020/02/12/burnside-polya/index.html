@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="前置知识 排列 置换 集合  内容 burnside polya  闲扯考虑这样的一类问题，统计不同的染色方案，但是两个物体经过一些操作之后（旋转，反转等）之后要被记为同一个方案，统计不同的方案。我们不能直接乘出结果的原因是需要考虑各种重复的等价情况。 感性理解一些概念提供一些可能不严谨的概念  等价置换：经过置换后仍然看作同意方案的变换，比如矩形的一个旋转可写成 $[2,3,4,1]$ 它的不动">
+<meta property="og:type" content="article">
+<meta property="og:title" content="感性理解的 burnside 和 polya">
+<meta property="og:url" content="https://weaverzhu.github.io/2020/02/12/burnside-polya/index.html">
+<meta property="og:site_name" content="Weaver_zhu&#39;s blog">
+<meta property="og:description" content="前置知识 排列 置换 集合  内容 burnside polya  闲扯考虑这样的一类问题，统计不同的染色方案，但是两个物体经过一些操作之后（旋转，反转等）之后要被记为同一个方案，统计不同的方案。我们不能直接乘出结果的原因是需要考虑各种重复的等价情况。 感性理解一些概念提供一些可能不严谨的概念  等价置换：经过置换后仍然看作同意方案的变换，比如矩形的一个旋转可写成 $[2,3,4,1]$ 它的不动">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-02-12T10:41:35.000Z">
+<meta property="article:modified_time" content="2022-09-05T23:33:10.107Z">
+<meta property="article:author" content="Weave_zhu">
+<meta property="article:tag" content="算法竞赛">
+<meta property="article:tag" content="数学">
+<meta property="article:tag" content="组合数学">
+<meta property="article:tag" content="burnside">
+<meta property="article:tag" content="polya">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>感性理解的 burnside 和 polya</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" "Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/project/">项目</a></li>
+         
+          <li><a href="/tags/">标签</a></li>
+         
+          <li><a href="/categories/">分类</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇 " href="/2020/01/27/rimworld-mod-codereading1/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部 " href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章 " href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://weaverzhu.github.io/2020/02/12/burnside-polya/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&text=感性理解的 burnside 和 polya"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&title=感性理解的 burnside 和 polya"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&is_video=false&description=感性理解的 burnside 和 polya"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=感性理解的 burnside 和 polya&body=Check out this article: https://weaverzhu.github.io/2020/02/12/burnside-polya/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&title=感性理解的 burnside 和 polya"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&title=感性理解的 burnside 和 polya"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&title=感性理解的 burnside 和 polya"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&title=感性理解的 burnside 和 polya"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&name=感性理解的 burnside 和 polya&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://weaverzhu.github.io/2020/02/12/burnside-polya/&t=感性理解的 burnside 和 polya"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="toc-number">1.</span> <span class="toc-text">前置知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AE%B9"><span class="toc-number">2.</span> <span class="toc-text">内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%B2%E6%89%AF"><span class="toc-number">3.</span> <span class="toc-text">闲扯</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%84%9F%E6%80%A7%E7%90%86%E8%A7%A3%E4%B8%80%E4%BA%9B%E6%A6%82%E5%BF%B5"><span class="toc-number">3.1.</span> <span class="toc-text">感性理解一些概念</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Burnside"><span class="toc-number">4.</span> <span class="toc-text">Burnside</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Polya"><span class="toc-number">5.</span> <span class="toc-text">Polya</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        感性理解的 burnside 和 polya
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Weave_zhu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-02-12T10:41:35.000Z" itemprop="datePublished">2020-02-12</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E7%AE%97%E6%B3%95%E7%AB%9E%E8%B5%9B/">算法竞赛</a> › <a class="category-link" href="/categories/%E7%AE%97%E6%B3%95%E7%AB%9E%E8%B5%9B/%E6%95%B0%E5%AD%A6/">数学</a> › <a class="category-link" href="/categories/%E7%AE%97%E6%B3%95%E7%AB%9E%E8%B5%9B/%E6%95%B0%E5%AD%A6/%E7%AC%94%E8%AE%B0/">笔记</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/burnside/" rel="tag">burnside</a>, <a class="tag-link-link" href="/tags/polya/" rel="tag">polya</a>, <a class="tag-link-link" href="/tags/%E6%95%B0%E5%AD%A6/" rel="tag">数学</a>, <a class="tag-link-link" href="/tags/%E7%AE%97%E6%B3%95%E7%AB%9E%E8%B5%9B/" rel="tag">算法竞赛</a>, <a class="tag-link-link" href="/tags/%E7%BB%84%E5%90%88%E6%95%B0%E5%AD%A6/" rel="tag">组合数学</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2><ul>
+<li>排列</li>
+<li>置换</li>
+<li>集合</li>
+</ul>
+<h2 id="内容"><a href="#内容" class="headerlink" title="内容"></a>内容</h2><ul>
+<li>burnside</li>
+<li>polya</li>
+</ul>
+<h2 id="闲扯"><a href="#闲扯" class="headerlink" title="闲扯"></a>闲扯</h2><p>考虑这样的一类问题，统计不同的染色方案，但是两个物体经过一些操作之后（旋转，反转等）之后要被记为同一个方案，统计不同的方案。我们不能直接乘出结果的原因是需要考虑各种重复的等价情况。</p>
+<h3 id="感性理解一些概念"><a href="#感性理解一些概念" class="headerlink" title="感性理解一些概念"></a>感性理解一些概念</h3><p>提供一些可能不严谨的概念</p>
+<ul>
+<li>等价置换：经过置换后仍然看作同意方案的变换，比如矩形的一个旋转可写成 $[2,3,4,1]$ 它的不动点个数为 1。啥都不动也算一个置换 $[1,2,3,4]$ 它的不动点个数为 4</li>
+<li>不动点个数：置换可以写成循环的成绩，循环的个数称为不动点个数</li>
+<li>等价置换群：由所有等价置换构成的群。Introductory Combinatorics 称之为 stab</li>
+</ul>
+<h2 id="Burnside"><a href="#Burnside" class="headerlink" title="Burnside"></a>Burnside</h2><p>一句话概括：所有本质不同的方案的数量为，所有等价置换的平均不动点个数</p>
+<p>怎么找等价置换呢？比如我们认为旋转是等价的，有了置换 $[2,3,4,1]$。对其再旋转还能得到 $[3,4,1,2]$ 和 $[4,1,2,3]$ 最后有四个这样的置换。这个过程在直觉上可看作一种 spanning 的过程。</p>
+<ul>
+<li>如果你看过一点抽象代数，联系循环群你就懂了（这个比喻比较恰当</li>
+<li>如果你看过一点线性代数，联系基向量生成线性空间（其实这个比喻不太合理</li>
+</ul>
+<p>总而言之你要带上它就要把它的衍生物都带上。比较严谨的来讲，这些置换构成一个群（抽象代数内容），我们叫它置换群。</p>
+<p>严谨的来描述 Burnside 定理：对于置换群 $G=(a_1,…,a_k)$，等价类（本质不同的方案）的个数：</p>
+<p>$$<br>I = \frac{1}{|G|}[c(a_1) + … + c(a_k)]<br>$$</p>
+<p>其中 $c(x)$ 是置换 $x$ 的不动点个数</p>
+<h2 id="Polya"><a href="#Polya" class="headerlink" title="Polya"></a>Polya</h2><p>假设我们有 $m$ 种颜色去染呢？</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/project/">项目</a></li>
+         
+          <li><a href="/tags/">标签</a></li>
+         
+          <li><a href="/categories/">分类</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="toc-number">1.</span> <span class="toc-text">前置知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AE%B9"><span class="toc-number">2.</span> <span class="toc-text">内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%B2%E6%89%AF"><span class="toc-number">3.</span> <span class="toc-text">闲扯</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%84%9F%E6%80%A7%E7%90%86%E8%A7%A3%E4%B8%80%E4%BA%9B%E6%A6%82%E5%BF%B5"><span class="toc-number">3.1.</span> <span class="toc-text">感性理解一些概念</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Burnside"><span class="toc-number">4.</span> <span class="toc-text">Burnside</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Polya"><span class="toc-number">5.</span> <span class="toc-text">Polya</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://weaverzhu.github.io/2020/02/12/burnside-polya/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&text=感性理解的 burnside 和 polya"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&title=感性理解的 burnside 和 polya"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&is_video=false&description=感性理解的 burnside 和 polya"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=感性理解的 burnside 和 polya&body=Check out this article: https://weaverzhu.github.io/2020/02/12/burnside-polya/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&title=感性理解的 burnside 和 polya"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&title=感性理解的 burnside 和 polya"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&title=感性理解的 burnside 和 polya"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&title=感性理解的 burnside 和 polya"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://weaverzhu.github.io/2020/02/12/burnside-polya/&name=感性理解的 burnside 和 polya&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://weaverzhu.github.io/2020/02/12/burnside-polya/&t=感性理解的 burnside 和 polya"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    Weave_zhu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/project/">项目</a></li>
+         
+          <li><a href="/tags/">标签</a></li>
+         
+          <li><a href="/categories/">分类</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+
+</body>
+</html>
